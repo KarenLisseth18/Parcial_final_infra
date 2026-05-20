@@ -8,7 +8,7 @@ sudo apt install -y nodejs git
 
 cd /home/ubuntu
 
-git clone https://github.com/TU_USUARIO/TU_REPOSITORIO.git
+git clone https://github.com/KarenLisseth18/Parcial_final_infra.git
 
 cd TU_REPOSITORIO/app
 

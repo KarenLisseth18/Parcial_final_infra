@@ -159,3 +159,100 @@ resource "aws_security_group" "rds_sg" {
     Name = "rds-sg"
   }
 }
+
+resource "aws_instance" "app_server_1" {
+  ami                         = "ami-0c02fb55956c7d316"
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.public_subnet_1.id
+  associate_public_ip_address = true
+
+  vpc_security_group_ids = [
+    aws_security_group.ec2_sg.id
+  ]
+
+  user_data = file("user_data.sh")
+
+  tags = {
+    Name = "app-server-1"
+  }
+}
+
+resource "aws_instance" "app_server_2" {
+  ami                         = "ami-0c02fb55956c7d316"
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.public_subnet_2.id
+  associate_public_ip_address = true
+
+  vpc_security_group_ids = [
+    aws_security_group.ec2_sg.id
+  ]
+
+  user_data = file("user_data.sh")
+
+  tags = {
+    Name = "app-server-2"
+  }
+}
+
+resource "aws_lb" "app_alb" {
+  name               = "app-load-balancer"
+  internal           = false
+  load_balancer_type = "application"
+
+  security_groups = [
+    aws_security_group.alb_sg.id
+  ]
+
+  subnets = [
+    aws_subnet.public_subnet_1.id,
+    aws_subnet.public_subnet_2.id
+  ]
+
+  tags = {
+    Name = "application-load-balancer"
+  }
+}
+
+resource "aws_lb_target_group" "app_tg" {
+  name     = "app-target-group"
+  port     = 3000
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main_vpc.id
+
+  health_check {
+    path                = "/health"
+    protocol            = "HTTP"
+    matcher             = "200"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+
+  tags = {
+    Name = "app-target-group"
+  }
+}
+
+resource "aws_lb_target_group_attachment" "app_1" {
+  target_group_arn = aws_lb_target_group.app_tg.arn
+  target_id        = aws_instance.app_server_1.id
+  port             = 3000
+}
+
+resource "aws_lb_target_group_attachment" "app_2" {
+  target_group_arn = aws_lb_target_group.app_tg.arn
+  target_id        = aws_instance.app_server_2.id
+  port             = 3000
+}
+
+resource "aws_lb_listener" "http_listener" {
+  load_balancer_arn = aws_lb.app_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app_tg.arn
+  }
+}

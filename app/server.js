@@ -37,7 +37,7 @@ app.get('/', (req, res) => {
 // Endpoint health check
 app.get('/health', (req, res) => {
   res.status(200).json({
-    status: 'UP'
+    status: 'OK'
   });
 });
 
@@ -82,7 +82,11 @@ app.post('/users', (req, res) => {
 
 });
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
+
 // Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+app.listen(3000, () => {
+  console.log("Servidor corriendo en puerto 3000");
 });
