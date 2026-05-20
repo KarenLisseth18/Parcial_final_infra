@@ -1,25 +1,17 @@
 #!/bin/bash
 
-sudo apt update -y
+yum update -y
 
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+curl -fsSL https://rpm.nodesource.com/setup_18.x | bash -
 
-sudo apt install -y nodejs git
+yum install -y nodejs git
 
-cd /home/ubuntu
+cd /home/ec2-user
 
 git clone https://github.com/KarenLisseth18/Parcial_final_infra.git
 
-cd TU_REPOSITORIO/app
+cd Parcial_final_infra/app
 
 npm install
 
-cat <<EOF > .env
-PORT=3000
-DB_HOST=TU_ENDPOINT_RDS
-DB_USER=admin
-DB_PASSWORD=Password123!
-DB_NAME=appdb
-EOF
-
-npm start
+nohup npm start > app.log 2>&1 &
