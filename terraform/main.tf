@@ -83,7 +83,7 @@ resource "aws_route_table_association" "public_assoc_2" {
 
 resource "aws_security_group" "alb_sg" {
   name        = "alb-security-group"
-  description = "Permite HTTP desde internet"
+  description = "permite http desde internet"
   vpc_id      = aws_vpc.main_vpc.id
 
   ingress {
@@ -107,7 +107,7 @@ resource "aws_security_group" "alb_sg" {
 
 resource "aws_security_group" "ec2_sg" {
   name        = "ec2-security-group"
-  description = "Permite trafico desde ALB"
+  description = "permite trafico desde alb"
   vpc_id      = aws_vpc.main_vpc.id
 
   ingress {
@@ -138,7 +138,7 @@ resource "aws_security_group" "ec2_sg" {
 
 resource "aws_security_group" "rds_sg" {
   name        = "rds-security-group"
-  description = "Permite MySQL desde EC2"
+  description = "permite mysql desde ec2"
   vpc_id      = aws_vpc.main_vpc.id
 
   ingress {
@@ -166,6 +166,8 @@ resource "aws_instance" "app_server_1" {
   subnet_id                   = aws_subnet.public_subnet_1.id
   associate_public_ip_address = true
 
+  key_name = "Labsuser"
+
   vpc_security_group_ids = [
     aws_security_group.ec2_sg.id
   ]
@@ -182,6 +184,8 @@ resource "aws_instance" "app_server_2" {
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.public_subnet_2.id
   associate_public_ip_address = true
+
+  key_name = "Labsuser"
 
   vpc_security_group_ids = [
     aws_security_group.ec2_sg.id
@@ -256,3 +260,28 @@ resource "aws_lb_listener" "http_listener" {
     target_group_arn = aws_lb_target_group.app_tg.arn
   }
 }
+
+resource "aws_db_subnet_group" "rds_subnet_group" {
+  name = "rds-subnet-group"
+
+  subnet_ids = [
+    aws_subnet.private_subnet_1.id,
+    aws_subnet.private_subnet_2.id
+  ]
+
+  tags = {
+    Name = "RDS subnet group"
+  }
+}
+
+resource "aws_db_instance" "rds" {
+
+  identifier = "app-database"
+
+  allocated_storage = 20
+  storage_type = "gp2"
+
+  engine = "mysql"
+  engine_version = "8.0"
+
+  instance_class = "db.t3.micro"
